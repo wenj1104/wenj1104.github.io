@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="编译openshift origin3.11或者更高版本，并部署一个三节点的集群 嘻嘻安装必要的包这里是从https://github.com/openshift/origin/blob/master/CONTRIBUTING.adoc里复制过来的。不知道有些包是不是用不到，但是避免麻烦，就直接一并安装了。需要注意的是，没有安装golang相关的包。1$ yum install -y make g">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-10-17T14:24:27.321Z">
+<meta property="og:updated_time" content="2018-10-17T14:52:48.614Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Build Origin">
 <meta name="twitter:description" content="编译openshift origin3.11或者更高版本，并部署一个三节点的集群 嘻嘻安装必要的包这里是从https://github.com/openshift/origin/blob/master/CONTRIBUTING.adoc里复制过来的。不知道有些包是不是用不到，但是避免麻烦，就直接一并安装了。需要注意的是，没有安装golang相关的包。1$ yum install -y make g">
@@ -381,6 +381,7 @@
 <p>subversion包会在下面安装golang的时候用到<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install -y subversion</span><br></pre></td></tr></table></figure></p>
 <p>这两个包会在编译的时候用到，不装会依赖报错。goversioninfo这个包在origin的源里。<br>只需要goversioninfo这个包，所以include一下。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ vim /etc/yum.repos.d/origin.repo</span><br><span class="line">[origin]</span><br><span class="line">name=origin</span><br><span class="line">baseurl=http://mirror.centos.org/centos/7/paas/x86_64/openshift-origin/</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=0</span><br><span class="line">includepkgs = goversioninfo</span><br><span class="line"></span><br><span class="line">$ yum install -y rpm-build goversioninfo</span><br></pre></td></tr></table></figure></p>
 <hr>
+<a id="more"></a>
 <h3 id="安装golang"><a href="#安装golang" class="headerlink" title="安装golang"></a>安装golang</h3><p>因为编译origin3.11甚至更高，需要golang1.10以上。而大多数安装的golang的方法，是通过下载<code>go1.11.linux-amd64.tar.gz</code>这种类似的压缩包来解压安装。<br>但是这种安装方法，最后<code>rpm -q golang</code>的时候，不会有输出。但是编译origin，需要的是安装<code>golang</code>这个包。这个很重要。<br><code>golang</code>这个包，本来是可以通过yum的方式来安装，但是目前的yum源里，最高就是1.9x，不符合编译要求。<br>所以就需要在网上找<code>golang</code>的rpm包来进行golang的安装。<br>不然会出现以下错误<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">OS_ONLY_BUILD_PLATFORMS=&apos;linux/amd64&apos; hack/build-rpms.sh</span><br><span class="line">[INFO] Building release RPMs for /root/go/src/openshift/origin/origin.spec ...</span><br><span class="line">error: Failed build dependencies:</span><br><span class="line">        golang &gt;= 1.10 is needed by origin-3.11.0-0.alpha.0.1282.2a86335.x86_64</span><br><span class="line">[ERROR] PID 1976: hack/build-rpms.sh:78: `rpmbuild -b$&#123;srpm&#125; &quot;$&#123;OS_RPM_SPECFILE&#125;&quot; --define &quot;skip_dist 1&quot; --define &quot;make_redistributable $&#123;make_redistributable&#125;&quot; --define &quot;version $&#123;OS_RPM_VERSION&#125;&quot; --define &quot;release $&#123;OS_RPM_RELEASE&#125;&quot; --define &quot;commit $&#123;OS_GIT_COMMIT&#125;&quot; --define &quot;os_git_vars $&#123;OS_RPM_GIT_VARS&#125;&quot; --define &apos;dist .el7&apos; --define &quot;_topdir $&#123;rpm_tmp_dir&#125;&quot;` exited with status 1.</span><br><span class="line">[INFO]          Stack Trace:</span><br><span class="line">[INFO]            1: hack/build-rpms.sh:78: `rpmbuild -b$&#123;srpm&#125; &quot;$&#123;OS_RPM_SPECFILE&#125;&quot; --define &quot;skip_dist 1&quot; --define &quot;make_redistributable $&#123;make_redistributable&#125;&quot; --define &quot;version $&#123;OS_RPM_VERSION&#125;&quot; --define &quot;release $&#123;OS_RPM_RELEASE&#125;&quot; --define &quot;commit $&#123;OS_GIT_COMMIT&#125;&quot; --define &quot;os_git_vars $&#123;OS_RPM_GIT_VARS&#125;&quot; --define &apos;dist .el7&apos; --define &quot;_topdir $&#123;rpm_tmp_dir&#125;&quot;`</span><br><span class="line">[INFO]   Exiting with code 1.</span><br><span class="line">[ERROR] hack/build-rpms.sh exited with code 1 after 00h 00m 16s</span><br><span class="line">make: *** [build-rpms] Error 1</span><br></pre></td></tr></table></figure></p>
 <p>下面四个包下载后安装，后面三个是第一个包所需要的依赖包。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ wget cbs.centos.org/kojifiles/packages/golang/1.10.2/1.el7/x86_64/golang-1.10.2-1.el7.x86_64.rpm</span><br><span class="line">$ wget cbs.centos.org/kojifiles/packages/golang/1.10.2/1.el7/noarch/golang-src-1.10.2-1.el7.noarch.rpm</span><br><span class="line">$ wget cbs.centos.org/kojifiles/packages/go-srpm-macros/2/3.el7/noarch/go-srpm-macros-2-3.el7.noarch.rpm</span><br><span class="line">$ wget cbs.centos.org/kojifiles/packages/golang/1.10.2/1.el7/x86_64/golang-bin-1.10.2-1.el7.x86_64.rpm</span><br><span class="line">$ rpm -ivh *.rpm</span><br></pre></td></tr></table></figure></p>
 <p>一定要看到这样的结果<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># rpm -q golang</span><br><span class="line">golang-1.10.2-1.el7.x86_64</span><br></pre></td></tr></table></figure></p>
@@ -525,10 +526,10 @@
               
               
               <div class="site-state-item site-state-categories">
-                
+                <a href="/categories/index.html">
                   <span class="site-state-item-count">1</span>
                   <span class="site-state-item-name">categories</span>
-                
+                </a>
               </div>
             
 
@@ -536,10 +537,10 @@
               
               
               <div class="site-state-item site-state-tags">
-                
+                <a href="/tags/index.html">
                   <span class="site-state-item-count">2</span>
                   <span class="site-state-item-name">tags</span>
-                
+                </a>
               </div>
             
 
@@ -612,6 +613,9 @@
 
 
 
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+   <span id="busuanzi_container_site_pv">本站总访问量<spanid="busuanzi_value_site_pv"></span>次</span>
 
         
 
@@ -768,7 +772,7 @@
     var isfetched = false;
     var isXml = true;
     // Search DB path;
-    var search_path = "";
+    var search_path = "search.xml";
     if (search_path.length === 0) {
       search_path = "search.xml";
     } else if (/json$/i.test(search_path)) {
